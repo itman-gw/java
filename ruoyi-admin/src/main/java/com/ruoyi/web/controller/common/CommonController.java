@@ -1,9 +1,18 @@
 package com.ruoyi.web.controller.common;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import cn.hutool.core.collection.CollectionUtil;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.system.domain.SysFile;
+import com.ruoyi.system.service.ISysFileService;
+import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +44,9 @@ public class CommonController
 
     @Autowired
     private ServerConfig serverConfig;
+
+    @Autowired
+    private ISysFileService sysFileService;
 
     private static final String FILE_DELIMETER = ",";
 
@@ -163,4 +175,109 @@ public class CommonController
             log.error("下载文件失败", e);
         }
     }
+    /**
+     * 文件上传（单个）
+     */
+    @PostMapping("/uploadFile")
+    @ResponseBody
+    public AjaxResult upload(MultipartFile file) throws Exception
+    {
+        try
+        {
+            // 上传文件路径
+            String fileName = file.getOriginalFilename();
+            String filePath = FileUploadUtils.uploadFile(file);
+            String extension = FileUploadUtils.getExtension(file);
+            SysFile sysFile = new SysFile();
+            sysFile.setFileName(fileName);
+            sysFile.setFilePath(filePath);
+            sysFile.setFileType(extension);
+            SysUser sysUser = (SysUser) SecurityUtils.getSubject().getPrincipal();
+            sysFile.setCreateBy(sysUser.getUserName());
+            int i = sysFileService.insertSysFile(sysFile);
+            if (i>0){
+                return AjaxResult.success(sysFile);
+            }else {
+                return AjaxResult.error();
+            }
+        }
+        catch (Exception e)
+        {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+
+    /**
+     * 文件上传（单个）
+     */
+    @PostMapping("/uploadFiles")
+    @ResponseBody
+    public AjaxResult uploads(List<MultipartFile> files) throws Exception {
+        if(CollectionUtil.isEmpty(files)){
+            return AjaxResult.error("请选择需要上传的文件");
+        }
+        List<Long> fileIds = new ArrayList<>();
+        int count = 0;
+        try {
+
+            for(MultipartFile file : files){
+                // 上传文件路径
+                String fileName = file.getOriginalFilename();
+                String filePath = FileUploadUtils.uploadFile(file);
+                String extension = FileUploadUtils.getExtension(file);
+                SysFile sysFile = new SysFile();
+                sysFile.setFileName(fileName);
+                sysFile.setFilePath(filePath);
+                sysFile.setFileType(extension);
+                SysUser sysUser = (SysUser) SecurityUtils.getSubject().getPrincipal();
+                sysFile.setCreateBy(sysUser.getUserName());
+                sysFileService.insertSysFile(sysFile);
+                count++;
+                fileIds.add(sysFile.getFileId());
+            }
+            AjaxResult ajax = AjaxResult.success();
+            ajax.put("fileIds", fileIds);
+            if(count==files.size()){
+                return ajax;
+            }else {
+                return AjaxResult.error("文件上传失败");
+            }
+        }
+        catch (Exception e)
+        {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+
+    /**
+     * 通用下载请求
+     *
+     * @param  fileId
+     * @param delete 是否删除
+     */
+    @GetMapping("/fileDownload")
+    public void Download( Long fileId, Boolean delete, HttpServletResponse response) {
+        SysFile sysFile = sysFileService.selectSysFileByFileId(fileId);
+        try
+        {
+            if (!FileUtils.checkAllowDownload(sysFile.getFileName()))
+            {
+                throw new Exception(StringUtils.format("文件名称({})非法，不允许下载。 ", sysFile.getFileName()));
+            }
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            FileUtils.setAttachmentResponseHeader(response, sysFile.getFileName());
+            FileUtils.writeBytes(sysFile.getFilePath(), response.getOutputStream());
+            if (delete)
+            {
+                FileUtils.deleteFile(sysFile.getFilePath());
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("下载文件失败", e);
+        }
+    }
+
 }

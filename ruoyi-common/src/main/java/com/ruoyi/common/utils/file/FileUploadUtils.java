@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Objects;
+
+import com.ruoyi.common.utils.ShiroUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 import com.ruoyi.common.config.RuoYiConfig;
@@ -228,5 +230,15 @@ public class FileUploadUtils
             extension = MimeTypeUtils.getExtension(Objects.requireNonNull(file.getContentType()));
         }
         return extension;
+    }
+
+
+
+    public static final String uploadFile(MultipartFile file) throws IOException {
+        String filePath = getDefaultBaseDir() + File.separator + ShiroUtils.getSysUser().getLoginName();
+        String fileName = file.getOriginalFilename();
+        String absPath = getAbsoluteFile(filePath, fileName).getAbsolutePath();
+        file.transferTo(Paths.get(absPath));
+        return absPath;
     }
 }

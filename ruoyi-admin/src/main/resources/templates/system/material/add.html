@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增材料信息')" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-material-add">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">材料名称：</label>
+                    <div class="col-sm-3">
+                        <input name="materialName" class="form-control" type="text">
+                    </div>
+                    <label class="col-sm-3 control-label">材料信息：</label>
+                    <div class="col-sm-3">
+                        <input name="materialInfo" class="form-control" type="text">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">材料名称：</label>
+                    <div class="col-sm-3">
+                        <input name="materialName" class="form-control" type="text">
+                    </div>
+                    <label class="col-sm-3 control-label">材料信息：</label>
+                    <div class="col-sm-3">
+                        <input name="materialInfo" class="form-control" type="text">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">材料名称：</label>
+                    <div class="col-sm-3">
+                        <input name="materialName" class="form-control" type="text">
+                    </div>
+                    <label class="col-sm-3 control-label">材料信息：</label>
+                    <div class="col-sm-3">
+                        <input name="materialInfo" class="form-control" type="text">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">备注：</label>
+            <div class="col-sm-8">
+                <textarea name="remark" class="form-control"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="font-noraml">多文件上传</label>
+            <div class="file-loading">
+                <input id="multipleFile" name="files" type="file" multiple>
+            </div>
+        </div>
+    </form>
+
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-fileinput-js" />
+<th:block th:include="include :: bootstrap-fileinput-css" />
+
+<script th:inline="javascript">
+    var prefix = ctx + "system/material"
+    var uploadedFileIds = [];  // 全局变量，用于存储文件上传接口返回的 fileIds
+    $("#form-material-add").validate({
+        rules: {
+            materialName: {
+                required: true
+            },
+            materialInfo: {
+                required: true
+            }
+        },
+        messages: {
+            materialName: "请输入材料名称",
+            materialInfo: "请输入材料信息"
+        },
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            var data = $('#form-material-add').serializeArray();
+            //fileIds需要调用文件提交接口获取
+            data.push({"name": "fileIds", "value": uploadedFileIds});
+            $.operate.save(prefix + "/add", data);
+        }
+    };
+
+    $(document).ready(function () {
+        // 多图上传
+        $("#multipleFile").fileinput({
+            uploadUrl: ctx + 'common/uploadFiles',
+            uploadAsync: false
+        }).on('filebatchuploadsuccess', function (event, data, previewId, index) {
+            var rsp = data.response;
+            uploadedFileIds = rsp.fileIds;
+            console.log(rsp.fileIds)
+        }).on('fileremoved', function (event, id, index) {
+            $("input[name='" + event.currentTarget.id + "']").val('')
+        })
+    });
+
+
+</script>
+</body>
+</html>

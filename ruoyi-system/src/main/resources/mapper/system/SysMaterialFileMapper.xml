@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysMaterialFileMapper">
+
+	<resultMap type="SysMaterialFile" id="SysMaterialFileResult">
+		<result property="materialId"    column="material_id"    />
+		<result property="fileId"    column="file_id"    />
+	</resultMap>
+
+	<sql id="selectSysMaterialFileVo">
+		select material_id, file_id from sys_material_file
+	</sql>
+
+	<select id="selectSysMaterialFileList" parameterType="SysMaterialFile" resultMap="SysMaterialFileResult">
+		<include refid="selectSysMaterialFileVo"/>
+		<where>
+			<if test="materialId != null "> and material_id = #{materialId}</if>
+			<if test="fileId != null "> and file_id = #{fileId}</if>
+		</where>
+	</select>
+
+	<select id="selectSysMaterialFileByMaterialId" parameterType="Long" resultMap="SysMaterialFileResult">
+		<include refid="selectSysMaterialFileVo"/>
+		where material_id = #{materialId}
+	</select>
+
+	<insert id="insertSysMaterialFile" parameterType="SysMaterialFile">
+		insert into sys_material_file
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="materialId != null">material_id,</if>
+			<if test="fileId != null">file_id,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="materialId != null">#{materialId},</if>
+			<if test="fileId != null">#{fileId},</if>
+		</trim>
+	</insert>
+	<insert id="batchInsertMaterialFile" parameterType="list">
+		insert into sys_material_file
+		(material_id,file_id)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.materialId,jdbcType=BIGINT},
+			#{item.fileId,jdbcType=BIGINT})
+		</foreach>
+
+	</insert>
+
+	<update id="updateSysMaterialFile" parameterType="SysMaterialFile">
+		update sys_material_file
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="fileId != null">file_id = #{fileId},</if>
+		</trim>
+		where material_id = #{materialId}
+	</update>
+
+	<delete id="deleteSysMaterialFileByMaterialId" parameterType="Long">
+		delete from sys_material_file where material_id = #{materialId}
+	</delete>
+
+	<delete id="deleteSysMaterialFileByMaterialIds" parameterType="String">
+		delete from sys_material_file where material_id in
+		<foreach item="materialId" collection="array" open="(" separator="," close=")">
+			#{materialId}
+		</foreach>
+	</delete>
+
+</mapper>
