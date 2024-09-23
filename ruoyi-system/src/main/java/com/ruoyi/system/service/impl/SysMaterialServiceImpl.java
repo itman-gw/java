@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.ruoyi.common.utils.ShiroUtils;
 import com.ruoyi.system.domain.SysFile;
 import com.ruoyi.system.domain.SysMaterialFile;
+import com.ruoyi.system.mapper.SysFileMapper;
 import com.ruoyi.system.mapper.SysMaterialFileMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,9 @@ public class SysMaterialServiceImpl implements ISysMaterialService
     @Autowired
     private SysMaterialFileMapper sysMaterialFileMapper;
 
+    @Autowired
+    private SysFileMapper  sysFileMapper;
+
     /**
      * 查询【请填写功能名称】
      * 
@@ -39,7 +45,10 @@ public class SysMaterialServiceImpl implements ISysMaterialService
     @Override
     public SysMaterial selectSysMaterialByMaterialId(Long materialId)
     {
-        return sysMaterialMapper.selectSysMaterialByMaterialId(materialId);
+        SysMaterial sysMaterial = sysMaterialMapper.selectSysMaterialByMaterialId(materialId);
+        List<SysFile> fileList = sysFileMapper.selectSysFileListByMaterialId(materialId);
+        sysMaterial.setFileList(fileList);
+        return sysMaterial;
     }
 
     /**
@@ -51,7 +60,12 @@ public class SysMaterialServiceImpl implements ISysMaterialService
     @Override
     public List<SysMaterial> selectSysMaterialList(SysMaterial sysMaterial)
     {
-        return sysMaterialMapper.selectSysMaterialList(sysMaterial);
+        List<SysMaterial> list = sysMaterialMapper.selectSysMaterialList(sysMaterial);
+        for(SysMaterial sysMater : list){
+            List<SysFile> sysFiles = sysFileMapper.selectSysFileListByMaterialId(sysMater.getMaterialId());
+            sysMater.setFileList(sysFiles);
+        }
+        return list;
     }
 
     /**

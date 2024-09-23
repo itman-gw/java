@@ -15,8 +15,8 @@
                             <input type="text" name="materialName"/>
                         </li>
                         <li>
-                            <label>关联用户ID：</label>
-                            <input type="text" name="userId"/>
+                            <label>材料信息：</label>
+                            <input type="text" name="materialInfo"/>
                         </li>
                         <li>
                             <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
@@ -65,7 +65,7 @@
             },
                 {
                     field: 'materialId',
-                    title: '${comment}',
+                    title: '材料ID',
                     visible: false
                 },
                 {
@@ -73,8 +73,21 @@
                     title: '材料名称'
                 },
                 {
-                    field: 'userId',
-                    title: '关联用户ID'
+                    field: 'materialInfo',
+                    title: '材料信息'
+                },
+                {
+                    field: 'fileList',
+                    title: '附件信息',
+                    formatter: function(value, row, index) {
+                        if (!value || !Array.isArray(value)) return '';  // 确保value是一个数组
+                        var links = [];
+                        value.forEach(file => {
+
+                            links.push(`<a href="${ctx + "common/fileDownload?fileId=" + file.fileId + "&delete=false" }">${file.fileName}</a>`);
+                        });
+                        return links.join(', ');
+                    }
                 },
                 {
                     field: 'remark',

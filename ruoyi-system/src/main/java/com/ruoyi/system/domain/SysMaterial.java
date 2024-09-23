@@ -31,6 +31,8 @@ public class SysMaterial extends BaseEntity
     /** 文件ids */
     @Excel(name = "文件ids")
     private List<Long> fileIds;
+    @Excel(name = "附件信息")
+    private List<SysFile> fileList;
 
     public void setMaterialId(Long materialId)
     {
@@ -80,5 +82,12 @@ public class SysMaterial extends BaseEntity
 
     public void setFileIds(List<Long> fileIds) {
         this.fileIds = fileIds;
+    }
+    public List<SysFile> getFileList() {
+        return fileList;
+    }
+
+    public void setFileList(List<SysFile> fileList) {
+        this.fileList = fileList;
     }
 }

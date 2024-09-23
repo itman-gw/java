@@ -58,4 +58,12 @@ public interface SysFileMapper
      * @return 结果
      */
     public int deleteSysFileByFileIds(String[] fileIds);
+    /**
+     * 根据材料ID查询相关附件
+     *
+     * @param materialId 需要删除的数据主键集合
+     * @return 结果
+     */
+
+    List<SysFile> selectSysFileListByMaterialId(Long materialId);
 }

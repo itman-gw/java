@@ -35,8 +35,12 @@
 		<include refid="selectSysFileVo"/>
 		where file_id = #{fileId}
 	</select>
+    <select id="selectSysFileListByMaterialId" resultType="com.ruoyi.system.domain.SysFile">
+		select a.file_id,file_name from sys_file a left join sys_material_file b on a.file_id=b.file_id
+		where material_id = #{materialId}
+		</select>
 
-	<insert id="insertSysFile" parameterType="SysFile" useGeneratedKeys="true" keyProperty="fileId">
+    <insert id="insertSysFile" parameterType="SysFile" useGeneratedKeys="true" keyProperty="fileId">
 		insert into sys_file
 		<trim prefix="(" suffix=")" suffixOverrides=",">
 			<if test="fileName != null">file_name,</if>
