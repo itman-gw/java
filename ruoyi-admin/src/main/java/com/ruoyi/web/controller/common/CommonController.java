@@ -212,7 +212,7 @@ public class CommonController
 
 
     /**
-     * 文件上传（单个）
+     * 文件上传（多个）
      */
     @PostMapping("/uploadFiles")
     @ResponseBody

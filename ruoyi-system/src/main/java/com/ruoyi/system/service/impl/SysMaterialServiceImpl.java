@@ -47,7 +47,9 @@ public class SysMaterialServiceImpl implements ISysMaterialService
     {
         SysMaterial sysMaterial = sysMaterialMapper.selectSysMaterialByMaterialId(materialId);
         List<SysFile> fileList = sysFileMapper.selectSysFileListByMaterialId(materialId);
+        List<Long> fileIds = fileList.stream().map(SysFile::getFileId).collect(Collectors.toList());
         sysMaterial.setFileList(fileList);
+        sysMaterial.setFileIds(fileIds);
         return sysMaterial;
     }
 
@@ -102,7 +104,21 @@ public class SysMaterialServiceImpl implements ISysMaterialService
     @Override
     public int updateSysMaterial(SysMaterial sysMaterial)
     {
-        return sysMaterialMapper.updateSysMaterial(sysMaterial);
+        sysMaterial.setUpdateBy(ShiroUtils.getSysUser().getUserName());
+        sysMaterial.setUpdateTime(new Date());
+        sysMaterialMapper.updateSysMaterial(sysMaterial);
+        List<SysMaterialFile> list = new ArrayList<>();
+        List<Long> fileIds = sysMaterial.getFileIds();
+        //将原有的附件关联信息删除
+        sysMaterialFileMapper.deleteSysMaterialFileByMaterialId(sysMaterial.getMaterialId());
+        for (Long fileId : fileIds){
+            SysMaterialFile sysMaterialFile = new SysMaterialFile();
+            sysMaterialFile.setMaterialId(sysMaterial.getMaterialId());
+            sysMaterialFile.setFileId(fileId);
+            list.add(sysMaterialFile);
+        }
+        return sysMaterialFileMapper.batchInsertMaterialFile(list);
+
     }
 
     /**

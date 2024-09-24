@@ -26,13 +26,16 @@
         <div class="form-group">
             <label class="font-noraml">多文件上传</label>
             <div class="file-loading">
-                <input id="multipleFile" name="files" type="file" multiple>
+                <input id="multipleFile" name="files" type="file" multiple >
             </div>
         </div>
         <div class="form-group">
             <div class="col-sm-8">
                 <ul class="list-unstyled">
-                    <li th:each="file : *{fileList}" th:text="${file.fileName}"> </li>
+                    <li th:each="file : *{fileList}">
+                    <span th:text="${file.fileName}"></span>
+                        <a href="javascript:void(0)" th:onclick="deleteLiElement(this,[[${file.fileId}]])">x</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -43,7 +46,9 @@
 <th:block th:include="include :: bootstrap-fileinput-css" />
 <script th:inline="javascript">
     var prefix = ctx + "system/material";
-    var uploadedFileIds = [];  // 全局变量，用于存储文件上传接口返回的 fileIds
+    var fileList = [[${sysMaterial.fileList}]];
+    var uploadedFileIds = [[${sysMaterial.fileIds}]];
+
     $("#form-material-edit").validate({
         focusCleanup: true
     });
@@ -53,8 +58,60 @@
             var data = $('#form-material-edit').serializeArray();
             //fileIds需要调用文件提交接口获取
             data.push({"name": "fileIds", "value": uploadedFileIds});
-            $.operate.save(prefix + "/edit", $('#form-material-edit').serialize());
+            console.log("data"+JSON.stringify(data))
+            $.operate.save(prefix + "/edit", data);
         }
+    }
+    function deleteLiElement(element,id) {
+        uploadedFileIds = uploadedFileIds.filter(item => item !== id);
+        fileList = fileList.filter(item => item.fileId !== id);
+        // 获取当前元素的父节点（即<li>标签）
+        var listItem = element.parentNode;
+        // 获取父节点的父节点（即<ul>标签）
+        var list = listItem.parentNode;
+        // 从<ul>中移除<li>
+        list.removeChild(listItem);
+    }
+
+    function updateFileList() {
+        const fileListElement = document.querySelector('.list-unstyled');
+        fileListElement.innerHTML = ''; // 清空旧列表
+        console.log("文件列表：" + JSON.stringify(fileList))
+        fileList.forEach(file => {
+            const listItem = document.createElement('li');
+            const fileNameSpan = document.createElement('span');
+            fileNameSpan.textContent = file.fileName;
+            const deleteSpan = document.createElement('a');
+            deleteSpan.textContent = 'x';
+            deleteSpan.href= 'javascript:void(0)';
+            deleteSpan.onclick = function(){
+                deleteLiElement(this,file.fileId); // 移除列表项
+
+            }
+            listItem.appendChild(fileNameSpan);
+            listItem.appendChild(deleteSpan);
+            fileListElement.appendChild(listItem);
+        });
+    }
+
+    function addLiElement(fileList) {
+        const fileListElement = document.querySelector('.list-unstyled');
+        console.log("文件列表：" + JSON.stringify(fileList))
+        fileList.forEach(file => {
+            const listItem = document.createElement('li');
+            const fileNameSpan = document.createElement('span');
+            fileNameSpan.textContent = file.fileName;
+            const deleteSpan = document.createElement('a');
+            deleteSpan.textContent = ' x';
+            deleteSpan.href= 'javascript:void(0)';
+            deleteSpan.onclick = function(){
+                deleteLiElement(this,file.fileId); // 移除列表项
+
+            }
+            listItem.appendChild(fileNameSpan);
+            listItem.appendChild(deleteSpan);
+            fileListElement.appendChild(listItem);
+        });
     }
 
     $(document).ready(function () {
@@ -64,11 +121,25 @@
             uploadAsync: false
         }).on('filebatchuploadsuccess', function (event, data, previewId, index) {
             var rsp = data.response;
-            uploadedFileIds = rsp.fileIds;
-            console.log(rsp.fileIds)
-        }).on('fileremoved', function (event, id, index) {
-            $("input[name='" + event.currentTarget.id + "']").val('')
-        })
+            uploadedFileIds = uploadedFileIds.concat(rsp.fileIds);
+            fileList = fileList.concat(rsp.fileList); // 合并新上传的文件信息
+            // updateFileList();
+            addLiElement(rsp.fileList);
+            console.log("uploadedFileIds: " + uploadedFileIds)
+        }).on('filesuccessremove', function (event, id) {
+            var filename = document.getElementById(id).getAttribute("data-filename");
+            // console.log("filename: " + filename)
+            // console.log("初始的fileList" + JSON.stringify(fileList))
+            fileList = fileList.filter(item => item.fileName !== filename)
+            // console.log("剩下的的fileList" + JSON.stringify(fileList))
+            uploadedFileIds = uploadedFileIds.filter(function (item) {
+                return fileList.some(function (file) {
+                    return file.fileId === item;
+                });
+            });
+            updateFileList();
+            console.log("uploadedFileIds: " + uploadedFileIds)
+        });
     });
 </script>
 </body>
