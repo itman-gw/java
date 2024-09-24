@@ -58,4 +58,6 @@ public interface ISysFileService
      * @return 结果
      */
     public int deleteSysFileByFileId(Long fileId);
+
+    int batchInsertSysFile(List<SysFile> sysFileList);
 }

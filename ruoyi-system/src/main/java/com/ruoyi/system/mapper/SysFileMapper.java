@@ -66,4 +66,6 @@ public interface SysFileMapper
      */
 
     List<SysFile> selectSysFileListByMaterialId(Long materialId);
+
+    int batchInsertSysFile(List<SysFile> sysFileList);
 }

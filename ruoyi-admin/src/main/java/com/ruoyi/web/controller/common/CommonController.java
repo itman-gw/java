@@ -4,12 +4,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.framework.web.domain.server.Sys;
 import com.ruoyi.system.domain.SysFile;
 import com.ruoyi.system.service.ISysFileService;
 import org.apache.shiro.SecurityUtils;
@@ -218,6 +221,7 @@ public class CommonController
             return AjaxResult.error("请选择需要上传的文件");
         }
         List<Long> fileIds = new ArrayList<>();
+        List<SysFile> fileList = new ArrayList<>();
         int count = 0;
         try {
 
@@ -232,17 +236,14 @@ public class CommonController
                 sysFile.setFileType(extension);
                 SysUser sysUser = (SysUser) SecurityUtils.getSubject().getPrincipal();
                 sysFile.setCreateBy(sysUser.getUserName());
-                sysFileService.insertSysFile(sysFile);
-                count++;
-                fileIds.add(sysFile.getFileId());
+                fileList.add(sysFile);
             }
+            int i = sysFileService.batchInsertSysFile(fileList);
             AjaxResult ajax = AjaxResult.success();
+            fileIds = fileList.stream().map(sysFile -> sysFile.getFileId()).collect(Collectors.toList());
             ajax.put("fileIds", fileIds);
-            if(count==files.size()){
-                return ajax;
-            }else {
-                return AjaxResult.error("文件上传失败");
-            }
+            ajax.put("fileList",fileList);
+            return ajax;
         }
         catch (Exception e)
         {

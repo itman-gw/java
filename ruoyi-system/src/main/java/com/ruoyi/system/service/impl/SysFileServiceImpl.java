@@ -96,4 +96,9 @@ public class SysFileServiceImpl implements ISysFileService
     {
         return sysFileMapper.deleteSysFileByFileId(fileId);
     }
+
+    @Override
+    public int batchInsertSysFile(List<SysFile> sysFileList) {
+        return sysFileMapper.batchInsertSysFile(sysFileList);
+    }
 }

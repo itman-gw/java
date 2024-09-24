@@ -65,6 +65,14 @@
 			<if test="remark != null">#{remark},</if>
 		</trim>
 	</insert>
+	<insert id="batchInsertSysFile" parameterType="SysFile" useGeneratedKeys="true" keyProperty="fileId">
+		insert into sys_file
+		(file_name, file_path, file_type, user_id, create_by, create_time, update_by, update_time, remark)
+		values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.fileName}, #{item.filePath}, #{item.fileType}, #{item.userId}, #{item.createBy}, #{item.createTime}, #{item.updateBy}, #{item.updateTime}, #{item.remark})
+		</foreach>
+	</insert>
 
 	<update id="updateSysFile" parameterType="SysFile">
 		update sys_file

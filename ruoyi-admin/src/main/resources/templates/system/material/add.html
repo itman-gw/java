@@ -71,6 +71,8 @@
 <script th:inline="javascript">
     var prefix = ctx + "system/material"
     var uploadedFileIds = [];  // 全局变量，用于存储文件上传接口返回的 fileIds
+    var fileList = [];
+
     $("#form-material-add").validate({
         rules: {
             materialName: {
@@ -89,6 +91,10 @@
 
     function submitHandler() {
         if ($.validate.form()) {
+            if (uploadedFileIds.length === 0) {
+                alert("请上传至少一个文件！");
+                return;
+            }
             var data = $('#form-material-add').serializeArray();
             //fileIds需要调用文件提交接口获取
             data.push({"name": "fileIds", "value": uploadedFileIds});
@@ -100,14 +106,26 @@
         // 多图上传
         $("#multipleFile").fileinput({
             uploadUrl: ctx + 'common/uploadFiles',
-            uploadAsync: false
+            uploadAsync: false,
+            overwriteInitial: false
         }).on('filebatchuploadsuccess', function (event, data, previewId, index) {
             var rsp = data.response;
-            uploadedFileIds = rsp.fileIds;
-            console.log(rsp.fileIds)
-        }).on('fileremoved', function (event, id, index) {
-            $("input[name='" + event.currentTarget.id + "']").val('')
-        })
+            uploadedFileIds = uploadedFileIds.concat(rsp.fileIds); // 合并新上传的 fileIds
+            fileList = fileList.concat(rsp.fileList); // 合并新上传的文件信息
+            // console.log("上传成功的文件 IDs: ", uploadedFileIds);
+        }).on('filesuccessremove', function (event, id) {
+            console.log("filesuccessremove执行" + id);
+            var filename = document.getElementById(id).getAttribute("data-filename");
+            console.log("filename: " + filename)
+            fileList = fileList.filter(item => item.fileName !== filename)
+            console.log("剩下的fileList" + fileList.toString())
+            uploadedFileIds = uploadedFileIds.filter(function (item) {
+                return fileList.some(function (file) {
+                    return file.fileId === item;
+                });
+            });
+            // console.log("uploadedFileIds: " + uploadedFileIds)
+        });
     });
 
 
